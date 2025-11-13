@@ -35,7 +35,7 @@ function kanbanBoard() {
       <div className="m-auto flex gap-2 ">
         <div className="flex gap-2">
           <SortableContext items={boxesId}>
-          {boxes.map((box) => <BoxContainer key={box.id} box={box} deleteBox={deleteBox} />)}
+          {boxes.map((box) => <BoxContainer key={box.id} box={box} deleteBox={deleteBox} updateBox={updateBox}/>)}
           </SortableContext>
           </div>
       <button onClick={() => {
@@ -65,7 +65,7 @@ function kanbanBoard() {
       </div>
       {createPortal(
         <DragOverlay>
-        {activeBox && (<BoxContainer box={activeBox} deleteBox={deleteBox} />)}
+        {activeBox && (<BoxContainer box={activeBox} deleteBox={deleteBox} updateBox={updateBox} />)}
       </DragOverlay>, document.body
       )}
       
@@ -84,6 +84,17 @@ function kanbanBoard() {
   function deleteBox(id: Id) {
     const updatedBoxes = boxes.filter((box) => box.id !== id);
     setBoxes(updatedBoxes);
+  }
+
+  function updateBox(id: Id, title: string) {
+    const newBox = boxes.map((box) =>{
+      if(box.id !== id) return box;
+      return {
+        ...box,
+        title,
+      }
+    })
+    setBoxes(newBox);
   }
 
   function onDragStart(event: DragStartEvent) {

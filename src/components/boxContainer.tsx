@@ -2,20 +2,25 @@ import { useSortable } from '@dnd-kit/sortable';
 import Delete from '../icons/delete';
 import {type Box, type Id} from '../types';
 import {CSS} from '@dnd-kit/utilities';
+import { useState } from 'react';
 
 interface BoxContainerProps {
   box: Box;
   deleteBox: (id: Id) => void;
+  updateBox: (id: Id, title: string) => void;
 }
 
 function boxContainer(props: BoxContainerProps) {
-  const { box, deleteBox } = props;
+  const { box, deleteBox, updateBox } = props;
+  const [editing, setEditing] = useState(false);
+
   const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({
     id: box.id,
     data: { 
       type: 'box',
       box
      },
+     disabled: editing,
   });
 
   const style = {
@@ -51,9 +56,13 @@ function boxContainer(props: BoxContainerProps) {
   rounded-md
   flex
   flex-col">
+    {/*column title bar*/}
     <div 
     {...attributes}
     {...listeners}
+    onClick={() => {
+      setEditing(true);
+    }}
     className="
     bg-red-700
     text-md
@@ -80,7 +89,31 @@ function boxContainer(props: BoxContainerProps) {
       text-sm
       rounded-full
       ">0</div>
-    {box.title}
+    {!editing && box.title}
+    {editing && <input 
+    value={box.title}
+    onChange={(e) => {
+      updateBox(box.id, e.target.value)
+    }}
+      className="
+      bg-black
+      text-white
+      focus:border-red-500
+      border
+      rounded
+      outline-none
+      px-2
+      w-full
+      "
+      autoFocus 
+      onBlur={() => {
+        setEditing(false);
+      }}
+      onKeyDown={(e) => {
+        if(e.key !== 'Enter') return;
+        setEditing(false);
+      }}
+    />}
     </div>
     <button
       onClick={() => {
