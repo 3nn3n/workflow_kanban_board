@@ -18,7 +18,7 @@ function kanbanBoard() {
       px-[40px]
        ">
       <div className="m-auto flex gap-2 ">
-        <div className="flex gap-5">
+        <div className="flex gap-2">
           {boxes.map((box) => <BoxContainer key={box.id} box={box} deleteBox={deleteBox} />)}
           </div>
       <button onClick={() => {
