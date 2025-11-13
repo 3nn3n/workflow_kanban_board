@@ -1,5 +1,7 @@
+import { useSortable } from '@dnd-kit/sortable';
 import Delete from '../icons/delete';
 import {type Box, type Id} from '../types';
+import {CSS} from '@dnd-kit/utilities';
 
 interface BoxContainerProps {
   box: Box;
@@ -8,7 +10,40 @@ interface BoxContainerProps {
 
 function boxContainer(props: BoxContainerProps) {
   const { box, deleteBox } = props;
-  return ( <div className="
+  const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({
+    id: box.id,
+    data: { 
+      type: 'box',
+      box
+     },
+  });
+
+  const style = {
+    transition,
+    transform: CSS.Transform.toString(transform),
+  };
+
+  if (isDragging) {
+    return <div ref={setNodeRef}
+  style={style}  
+  className="
+  bg-red-200
+  w-[250px]
+  h-[300px]
+  max-h-[300px]
+  rounded-md
+  flex
+  flex-col
+  opacity-50
+  border-2
+  border-white-200">
+  </div>;
+  }
+  return ( 
+  <div 
+  ref={setNodeRef}
+  style={style}  
+  className="
   bg-red-500
   w-[250px]
   h-[300px]
@@ -16,7 +51,10 @@ function boxContainer(props: BoxContainerProps) {
   rounded-md
   flex
   flex-col">
-    <div className="
+    <div 
+    {...attributes}
+    {...listeners}
+    className="
     bg-red-700
     text-md
     h-[60px]

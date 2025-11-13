@@ -1,10 +1,24 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Plus from "../icons/plus"
 import {type Box, type Id} from "../types";
 import BoxContainer from "./boxContainer";
+import { DndContext, DragOverlay, useSensor, PointerSensor, useSensors, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
+import { SortableContext } from "@dnd-kit/sortable";
+import { createPortal } from "react-dom";
 
 function kanbanBoard() {
   const [boxes, setBoxes] = useState<Box[]>([]);
+  const boxesId = useMemo(() => boxes.map((box) => box.id), [boxes]);
+  const [activeBox, setActiveBox] = useState<Box | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { 
+        distance: 50,
+      },
+    })
+  );
+
   console.log(boxes);
     return (
     <div className="
@@ -17,9 +31,12 @@ function kanbanBoard() {
       overflow-y-hidden
       px-[40px]
        ">
+        <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <div className="m-auto flex gap-2 ">
         <div className="flex gap-2">
+          <SortableContext items={boxesId}>
           {boxes.map((box) => <BoxContainer key={box.id} box={box} deleteBox={deleteBox} />)}
+          </SortableContext>
           </div>
       <button onClick={() => {
         createBox()
@@ -46,6 +63,13 @@ function kanbanBoard() {
         Add Column
       </button>
       </div>
+      {createPortal(
+        <DragOverlay>
+        {activeBox && (<BoxContainer box={activeBox} deleteBox={deleteBox} />)}
+      </DragOverlay>, document.body
+      )}
+      
+      </DndContext>
     </div>
   );
 
@@ -60,6 +84,37 @@ function kanbanBoard() {
   function deleteBox(id: Id) {
     const updatedBoxes = boxes.filter((box) => box.id !== id);
     setBoxes(updatedBoxes);
+  }
+
+  function onDragStart(event: DragStartEvent) {
+    console.log("Drag started:", event);
+    if(event.active.data.current?.type === "box") {
+      setActiveBox(event.active.data.current.box);
+      return;
+    }
+  }
+
+  function onDragEnd(event: DragEndEvent) {
+    const {active, over} = event;
+    if(!over) return;
+
+    const activeBoxId = active.id;
+    const overBoxId = over.id;
+
+    if(activeBoxId === overBoxId) return;
+
+    setBoxes((boxes) => { 
+      const oldIndex = boxes.findIndex((box) => box.id === activeBoxId);
+      const newIndex = boxes.findIndex((box) => box.id === overBoxId);
+
+      //you can either return........return arraymove(boxes, oldIndex, newIndex); or implement manually
+
+      const newBoxes = [...boxes];
+      const [movedBox] = newBoxes.splice(oldIndex, 1);
+      newBoxes.splice(newIndex, 0, movedBox);
+      return newBoxes;
+    });
+    setActiveBox(null);
   }
 
 }
