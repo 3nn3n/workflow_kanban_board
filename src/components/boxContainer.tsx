@@ -13,11 +13,12 @@ interface BoxContainerProps {
   updateBox: (id: Id, title: string) => void;
   createTask: (boxId: Id) => void;
   deleteTask: (id: Id) => void;
+  updateTask: (id: Id, content: string) => void;
   tasks: Task[]
 }
 
 function boxContainer(props: BoxContainerProps) {
-  const { box, deleteBox, updateBox, createTask, deleteTask, tasks } = props;
+  const { box, deleteBox, updateBox, createTask, deleteTask, tasks, updateTask } = props;
   const [editing, setEditing] = useState(false);
 
   const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({
@@ -145,7 +146,7 @@ function boxContainer(props: BoxContainerProps) {
     overflow-y-auto
     ">
     {tasks.map((task) => (
-      <TaskContainer task={task} key={task.id} deleteTask={deleteTask}/>
+      <TaskContainer task={task} key={task.id} deleteTask={deleteTask} updateTask={updateTask}/>
     ))}
     
     

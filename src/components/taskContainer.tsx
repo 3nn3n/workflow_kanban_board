@@ -5,15 +5,23 @@ import { useState } from "react";
 interface TaskContainerProps {
   task: Task;
   deleteTask: (id: Id) => void;
+  updateTask: (id: Id, content: string) => void;
 }
 
 
-function taskContainer({ task, deleteTask }: TaskContainerProps) {
-
+function taskContainer({ task, deleteTask, updateTask }: TaskContainerProps) {
   const [mouseDown, setMouseDown] = useState(false);
+  const [editing, setEditing] = useState(false);
 
-  return (
-    <div className="
+  const toggleEditing = () => {
+    setEditing((prev) => !prev);
+    setMouseDown(false);
+  };
+
+  if (editing) {
+    return (
+      <div
+    className="
     bg-yellow-300
     p-2.5
     h-[60px]
@@ -27,16 +35,52 @@ function taskContainer({ task, deleteTask }: TaskContainerProps) {
     hover:ring-green-500
     cursor-grab
     relative
+    ">
+    <textarea className="
+    w-[60%]
+    h-[90%]
+    resize-none border-none rounded bg-transparent text-black
+    focus:outline-none
     "
-    onMouseEnter={() => {
-      setMouseDown(true);
+    value={task.content}
+    autoFocus
+    placeholder="enter your task"
+    onBlur={toggleEditing}
+    onKeyDown={(e) => {
+      if(e.key === "Enter" && e.shiftKey) toggleEditing();
     }}
-
-    onMouseLeave={() => {
-      setMouseDown(false);
+    onChange={(e) => {
+      updateTask(task.id, e.target.value);
     }}
-    >{task.content}
+    ></textarea>
+    </div>
+    )}
 
+  return (
+    <div
+    onClick={toggleEditing}
+    onMouseEnter={() => setMouseDown(true)}
+    onMouseLeave={() => setMouseDown(false)}
+    className="
+    bg-yellow-300
+    p-2.5
+    h-[60px]
+    min-h-[60px]
+    items-center
+    flex
+    text-left
+    rounded-xl
+    hover:ring-2
+    hover:ring-inset
+    hover:ring-green-500
+    cursor-grab
+    relative 
+    task
+    "
+    >
+      <p className="
+      my-auto h-[90%] w-full overflow-y-auto overflow-x-hidden whitespace-pre-wrap
+      ">{task.content}</p>
     {mouseDown && <button 
     onClick={() => 
       deleteTask(task.id)

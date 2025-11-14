@@ -42,6 +42,7 @@ function kanbanBoard() {
           deleteBox={deleteBox} updateBox={updateBox} 
           createTask={createTask} 
           deleteTask={deleteTask}
+          updateTask={updateTask}
           tasks={tasks.filter((task) => task.boxId === box.id)} />)}
           </SortableContext>
           </div>
@@ -76,6 +77,7 @@ function kanbanBoard() {
         deleteBox={deleteBox} updateBox={updateBox} 
         createTask={createTask}
         deleteTask={deleteTask}
+        updateTask={updateTask}
         tasks={tasks.filter((task) => task.boxId === activeBox.id)}
         />)}
       </DragOverlay>, document.body
@@ -122,6 +124,17 @@ function kanbanBoard() {
     const updatedTasks = tasks.filter((task) => task.id !== id);
     setTasks(updatedTasks);
   }    
+
+  function updateTask(id: Id, content: string) {
+    const newTasks = tasks.map((task) => {
+      if(task.id !== id) return task;
+      return {
+        ...task,
+        content,
+      };
+    });
+    setTasks(newTasks);
+  } 
 
   function onDragStart(event: DragStartEvent) {
     console.log("Drag started:", event);
