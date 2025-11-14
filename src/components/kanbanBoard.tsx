@@ -2,9 +2,10 @@ import { useMemo, useState } from "react";
 import Plus from "../icons/plus"
 import {type Box, type Id, type Task} from "../types";
 import BoxContainer from "./boxContainer";
-import { DndContext, DragOverlay, useSensor, PointerSensor, useSensors, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
-import { SortableContext } from "@dnd-kit/sortable";
+import { DndContext, DragOverlay, useSensor, PointerSensor, useSensors, type DragEndEvent, type DragStartEvent, type DragOverEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
+import TaskContainer from "./taskContainer";
 
 function kanbanBoard() {
   const [boxes, setBoxes] = useState<Box[]>([]);
@@ -12,6 +13,7 @@ function kanbanBoard() {
 
   const boxesId = useMemo(() => boxes.map((box) => box.id), [boxes]);
   const [activeBox, setActiveBox] = useState<Box | null>(null);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -24,16 +26,14 @@ function kanbanBoard() {
   console.log(boxes);
     return (
     <div className="
-      m-auto
-      flex
-      min-h-screen
-      w-full
-      items-center
-      overflow-x-auto
-      overflow-y-hidden
-      px-[40px]
+      m-auto flex min-h-screen w-full items-center
+      overflow-x-auto overflow-y-hidden px-[40px]
        ">
-        <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+        <DndContext sensors={sensors} 
+        onDragStart={onDragStart} 
+        onDragEnd={onDragEnd}
+        onDragOver={onDragOver}
+        >
       <div className="m-auto flex gap-2 ">
         <div className="flex gap-2">
           <SortableContext items={boxesId}>
@@ -50,21 +50,9 @@ function kanbanBoard() {
         createBox()
       }} 
       className="
-      h-20px
-      w-[200px]
-      min-w-[300px]
-      cursor-pointer
-      rounded-lg
-      bg-red-500
-      border-3
-      border-red-700
-      p-1
-      ring-red-300
-      hover:ring-2
-      text-white
-      font-bold
-      flex
-      gap-2
+      h-20px w-[200px] min-w-[300px] cursor-pointer rounded-lg
+      bg-red-500 border-3 border-red-700 p-1 ring-red-300
+      hover:ring-2 text-white font-bold flex gap-2
       "
       >
         <Plus />
@@ -80,6 +68,10 @@ function kanbanBoard() {
         updateTask={updateTask}
         tasks={tasks.filter((task) => task.boxId === activeBox.id)}
         />)}
+        {activeTask && <TaskContainer task={activeTask} 
+        deleteTask={deleteTask} 
+        updateTask={updateTask}
+        />}
       </DragOverlay>, document.body
       )}
       
@@ -98,6 +90,9 @@ function kanbanBoard() {
   function deleteBox(id: Id) {
     const updatedBoxes = boxes.filter((box) => box.id !== id);
     setBoxes(updatedBoxes);
+
+    const updatedTasks = tasks.filter((task) => task.boxId !== id);
+    setTasks(updatedTasks);
   }
 
   function updateBox(id: Id, title: string) {
@@ -142,9 +137,16 @@ function kanbanBoard() {
       setActiveBox(event.active.data.current.box);
       return;
     }
+
+    if(event.active.data.current?.type === "task") {
+      setActiveTask(event.active.data.current.task);
+      return;
+    }
   }
 
   function onDragEnd(event: DragEndEvent) {
+    setActiveBox(null);
+    setActiveTask(null);
     const {active, over} = event;
     if(!over) return;
 
@@ -166,6 +168,46 @@ function kanbanBoard() {
     });
     setActiveBox(null);
   }
+
+  function onDragOver(event: DragOverEvent) {
+    const {active, over} = event;
+    if(!over) return;
+
+    const activeBoxId = active.id;
+    const overBoxId = over.id;
+
+    if(activeBoxId === overBoxId) return;
+
+    const isActiveTask = active.data.current?.type === "task";
+    const isOverTask = over.data.current?.type === "task";
+
+    if(!isActiveTask) return;
+
+    if (isActiveTask && isOverTask) {
+      setTasks((tasks) => {
+      const activeIndex = tasks.findIndex((task) => task.id === activeBoxId);
+      const overIndex = tasks.findIndex((task) => task.id === overBoxId);
+
+      tasks[activeIndex].boxId = tasks[overIndex].boxId;
+
+      return arrayMove(tasks, activeIndex, overIndex);
+    });
+    }
+
+    const isOverBox = over.data.current?.type === "box";
+
+    if(isActiveTask && isOverBox) {
+      setTasks((tasks) => {
+      const activeIndex = tasks.findIndex((task) => task.id === activeBoxId);
+
+      tasks[activeIndex].boxId = overBoxId;
+
+      return arrayMove(tasks, activeIndex, activeIndex);
+    });
+  }
+}
+
+
 
 }
 

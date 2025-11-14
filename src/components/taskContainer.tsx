@@ -1,6 +1,8 @@
 import { type Id, type Task } from "../types";
 import Delete from "../icons/delete";
 import { useState } from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import {CSS} from '@dnd-kit/utilities';
 
 interface TaskContainerProps {
   task: Task;
@@ -18,29 +20,47 @@ function taskContainer({ task, deleteTask, updateTask }: TaskContainerProps) {
     setMouseDown(false);
   };
 
+  const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({
+      id: task.id,
+      data: { 
+        type: 'task',
+        task
+       },
+       disabled: editing,
+    });
+
+    const style = {
+        transition,
+        transform: CSS.Transform.toString(transform),
+      };
+
+
+
+  if (isDragging) {
+    return <div ref={setNodeRef}
+  style={style}  
+  className=" 
+    bg-yellow-300 opacity-50 border-2 border-rose-200
+    p-2.5 h-[60px] min-h-[60px] items-center
+    flex text-left rounded-xl cursor-grab relative
+  "/>
+
+  }    
+
   if (editing) {
     return (
       <div
+    ref={setNodeRef}
+    style={style}
+    {...attributes}
+    {...listeners}
     className="
-    bg-yellow-300
-    p-2.5
-    h-[60px]
-    min-h-[60px]
-    items-center
-    flex
-    text-left
-    rounded-xl
-    hover:ring-2
-    hover:ring-inset
-    hover:ring-green-500
-    cursor-grab
-    relative
+    bg-yellow-300 p-2.5 h-[60px] min-h-[60px] items-center flex text-left rounded-xl
+    hover:ring-2 hover:ring-inset hover:ring-green-500 cursor-grab relative
     ">
     <textarea className="
-    w-[60%]
-    h-[90%]
-    resize-none border-none rounded bg-transparent text-black
-    focus:outline-none
+    w-full h-[90%] resize-none border-none 
+    rounded bg-transparent text-black focus:outline-none
     "
     value={task.content}
     autoFocus
@@ -58,24 +78,16 @@ function taskContainer({ task, deleteTask, updateTask }: TaskContainerProps) {
 
   return (
     <div
+    ref={setNodeRef}
+    style={style}
+    {...attributes}
+    {...listeners}
     onClick={toggleEditing}
     onMouseEnter={() => setMouseDown(true)}
     onMouseLeave={() => setMouseDown(false)}
     className="
-    bg-yellow-300
-    p-2.5
-    h-[60px]
-    min-h-[60px]
-    items-center
-    flex
-    text-left
-    rounded-xl
-    hover:ring-2
-    hover:ring-inset
-    hover:ring-green-500
-    cursor-grab
-    relative 
-    task
+    bg-yellow-300 p-2.5 h-[60px] min-h-[60px] items-center flex text-left rounded-xl
+    hover:ring-2 hover:ring-inset hover:ring-green-500 cursor-grab relative task
     "
     >
       <p className="
@@ -86,18 +98,9 @@ function taskContainer({ task, deleteTask, updateTask }: TaskContainerProps) {
       deleteTask(task.id)
     }
     className="
-    stroke-black
-    absolute
-    right-4
-    top-1/2
-    -translate-y-1/2
-    bg-yellow-300
-    rounded
-    px-1
-    py-2
-    hover:stroke-white
-    opacity-70
-    hover:opacity-100
+    stroke-black absolute right-4
+    top-1/2 -translate-y-1/2 bg-yellow-300 rounded px-1
+    py-2 hover:stroke-white opacity-70 hover:opacity-100
     "><Delete /></button>}
 
     
