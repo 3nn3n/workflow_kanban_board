@@ -4,3 +4,9 @@ export type Box = {
   id: Id;
   title: string;
 };
+
+export type Task = {
+  id: Id;
+  boxId: Id;
+  content: string;
+};

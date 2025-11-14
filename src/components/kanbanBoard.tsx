@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import Plus from "../icons/plus"
-import {type Box, type Id} from "../types";
+import {type Box, type Id, type Task} from "../types";
 import BoxContainer from "./boxContainer";
 import { DndContext, DragOverlay, useSensor, PointerSensor, useSensors, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
@@ -8,6 +8,8 @@ import { createPortal } from "react-dom";
 
 function kanbanBoard() {
   const [boxes, setBoxes] = useState<Box[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+
   const boxesId = useMemo(() => boxes.map((box) => box.id), [boxes]);
   const [activeBox, setActiveBox] = useState<Box | null>(null);
 
@@ -35,7 +37,12 @@ function kanbanBoard() {
       <div className="m-auto flex gap-2 ">
         <div className="flex gap-2">
           <SortableContext items={boxesId}>
-          {boxes.map((box) => <BoxContainer key={box.id} box={box} deleteBox={deleteBox} updateBox={updateBox}/>)}
+          {boxes.map((box) =>  <BoxContainer 
+          key={box.id} box={box} 
+          deleteBox={deleteBox} updateBox={updateBox} 
+          createTask={createTask} 
+          deleteTask={deleteTask}
+          tasks={tasks.filter((task) => task.boxId === box.id)} />)}
           </SortableContext>
           </div>
       <button onClick={() => {
@@ -65,7 +72,12 @@ function kanbanBoard() {
       </div>
       {createPortal(
         <DragOverlay>
-        {activeBox && (<BoxContainer box={activeBox} deleteBox={deleteBox} updateBox={updateBox} />)}
+        {activeBox && (<BoxContainer box={activeBox} 
+        deleteBox={deleteBox} updateBox={updateBox} 
+        createTask={createTask}
+        deleteTask={deleteTask}
+        tasks={tasks.filter((task) => task.boxId === activeBox.id)}
+        />)}
       </DragOverlay>, document.body
       )}
       
@@ -96,6 +108,20 @@ function kanbanBoard() {
     })
     setBoxes(newBox);
   }
+
+  function createTask(boxId: Id) {
+    const newTask: Task = {
+      id: generateId(),
+      boxId,
+      content: `New Task ${tasks.length + 1}`,
+    };
+    setTasks([...tasks, newTask]);
+  }
+
+  function deleteTask(id: Id) {
+    const updatedTasks = tasks.filter((task) => task.id !== id);
+    setTasks(updatedTasks);
+  }    
 
   function onDragStart(event: DragStartEvent) {
     console.log("Drag started:", event);

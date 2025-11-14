@@ -3,15 +3,21 @@ import Delete from '../icons/delete';
 import {type Box, type Id} from '../types';
 import {CSS} from '@dnd-kit/utilities';
 import { useState } from 'react';
+import Plus from '../icons/plus';
+import { type Task } from '../types';
+import TaskContainer from './taskContainer';
 
 interface BoxContainerProps {
   box: Box;
   deleteBox: (id: Id) => void;
   updateBox: (id: Id, title: string) => void;
+  createTask: (boxId: Id) => void;
+  deleteTask: (id: Id) => void;
+  tasks: Task[]
 }
 
 function boxContainer(props: BoxContainerProps) {
-  const { box, deleteBox, updateBox } = props;
+  const { box, deleteBox, updateBox, createTask, deleteTask, tasks } = props;
   const [editing, setEditing] = useState(false);
 
   const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({
@@ -132,8 +138,39 @@ function boxContainer(props: BoxContainerProps) {
     <div className="
     flex
     flex-grow
-    ">Content</div>
-    <div>Footer</div>
+    flex-col
+    gap-4
+    p-2
+    overflow-x-hidden
+    overflow-y-auto
+    ">
+    {tasks.map((task) => (
+      <TaskContainer task={task} key={task.id} deleteTask={deleteTask}/>
+    ))}
+    
+    
+    </div>
+    {/*tasks go here*/}
+        <button className="
+        bg-green-500
+        hover:bg-green-700
+        flex
+        gap-2
+        m-2
+        px-2
+        py-1
+        rounded-md
+        text-white
+        font-bold
+        "
+        onClick={() => {
+          createTask(box.id)
+        }}
+        >
+        <Plus />
+        Add task</button>
+
+      
     </div>
   );
 }
